@@ -8,7 +8,7 @@ Golang SDK for Shimmer BI System
 go get github.com/ShimmerGames-Co-Ltd/shimmerdata-go
 ```
 ## 2.日志格式
-shimmerdata只是json格式的日志。
+shimmerdata支持json格式的日志。
 在SDK中以map的方式传递数据。
 shimmerdata兼容数数科技的数据格式，可以从数数SDK直接切换过来，不需要对日志格式做任何修改。
 ## 3.日志传输方式
