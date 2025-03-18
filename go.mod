@@ -1,4 +1,4 @@
-module github.com/ShimmerGames-Co-Ltd/shimmerdata-go.git
+module github.com/ShimmerGames-Co-Ltd/shimmerdata-go
 
 go 1.14
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ShimmerGames-Co-Ltd/shimmerdata-go.git/shimmerdata"
+	"github.com/ShimmerGames-Co-Ltd/shimmerdata-go/shimmerdata"
 )
 
 func newBatchClient(conf shimmerdata.SDBatchConfig) (*shimmerdata.SDAnalytics, error) {

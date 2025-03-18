@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/ShimmerGames-Co-Ltd/shimmerdata-go.git/shimmerdata"
+	"github.com/ShimmerGames-Co-Ltd/shimmerdata-go/shimmerdata"
 	"log/slog"
 	"time"
 )
