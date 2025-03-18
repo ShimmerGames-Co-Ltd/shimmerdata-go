@@ -18,7 +18,12 @@ func main() {
 		Compress:  true,
 		Interval:  1,
 	})
-	defer client.Close()
+	defer func() {
+		closeErr := client.Close()
+		if closeErr != nil {
+			slog.Error("close error", "error", closeErr)
+		}
+	}()
 	if err != nil {
 		panic(err)
 	}

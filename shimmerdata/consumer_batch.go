@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-// SDBatchConsumer upload data to BI by http
+// SDBatchConsumer 通过HTTP协议上报日志
 type SDBatchConsumer struct {
 	conf            SDBatchConfig //启动配置
 	logPrinter      *printer      //日志打印
@@ -30,6 +30,7 @@ type SDBatchConsumer struct {
 	dirWatchStopped chan struct{} //文件监听关闭信号
 }
 
+// SDBatchConfig 启动配置参数
 type SDBatchConfig struct {
 	TempDir   string        // 用于日志无法正常发送到HTTP服务器时缓存日志的本地目录，如果为空则丢弃无法发送的日志
 	ServerUrl string        // HTTP服务器地址
