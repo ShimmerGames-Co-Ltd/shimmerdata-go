@@ -24,7 +24,8 @@ jobs:
           git config user.email "github-actions@github.com"
           git add version.go
           git commit -m "Update version to $TAG_NAME"
-          git push origin HEAD
+          git tag -f $TAG_NAME # 重新打 tag
+          git push origin $TAG_NAME --force # 推送到当前 tag
 
       - name: Create GitHub Release
         id: create_release
