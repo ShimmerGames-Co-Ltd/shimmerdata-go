@@ -2,6 +2,7 @@ package shimmerdata
 
 import (
 	"errors"
+	shimmerdata_go "github.com/ShimmerGames-Co-Ltd/shimmerdata-go"
 	"sync"
 )
 
@@ -16,9 +17,6 @@ const (
 	UserAppend     = "user_append"
 	UserUniqAppend = "user_uniq_append"
 	UserDel        = "user_del"
-
-	SdkVersion = "v1.0.0"
-	LibName    = "Golang"
 )
 
 type Data struct {
@@ -156,8 +154,8 @@ func (ta *SDAnalytics) track(accountId, distinctId, dataType, eventName, eventId
 
 	mergeProperties(p, dynamicSuperProperties)
 	// preset properties has the highest priority
-	p["#lib"] = LibName
-	p["#lib_version"] = SdkVersion
+	p["#lib"] = shimmerdata_go.LibName
+	p["#lib_version"] = shimmerdata_go.Version
 	// custom properties
 	mergeProperties(p, properties)
 

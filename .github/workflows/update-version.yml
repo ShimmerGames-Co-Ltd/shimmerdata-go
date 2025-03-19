@@ -1,0 +1,34 @@
+name: Update Version and Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update version constant
+        run: |
+          TAG_NAME=${{ github.event.ref }}
+          TAG_NAME=$(echo $TAG_NAME | sed 's/refs\/tags\///') # Remove 'refs/tags/' prefix
+          sed -i "s/const Version = \".*\"/const Version = \"$TAG_NAME\"/" version.go
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add version.go
+          git commit -m "Update version to $TAG_NAME"
+          git push origin HEAD
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.ref }}
+          name: ${{ github.event.ref }}

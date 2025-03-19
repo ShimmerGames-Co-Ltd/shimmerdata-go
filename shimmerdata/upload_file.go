@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	shimmerdata_go "github.com/ShimmerGames-Co-Ltd/shimmerdata-go"
 	"io"
 	"net/http"
 	"os"
@@ -56,7 +57,7 @@ func (c *SDBatchConsumer) uploadFile(fileDir string) error {
 		App:      c.conf.AppId,
 		Token:    c.conf.AppToken,
 		Sdk:      "go-sdk",
-		Version:  SdkVersion,
+		Version:  shimmerdata_go.Version,
 		Compress: compress,
 		Md5:      md5Str,
 		Filename: filename,

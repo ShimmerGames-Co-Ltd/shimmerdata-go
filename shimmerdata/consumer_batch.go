@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	shimmerdata_go "github.com/ShimmerGames-Co-Ltd/shimmerdata-go"
 	"io"
 	"log/slog"
 	"net/http"
@@ -311,7 +312,7 @@ func (c *SDBatchConsumer) send(data []byte, size int) (err error) {
 		App:      c.conf.AppId,
 		Token:    c.conf.AppToken,
 		SDK:      "go-sdk",
-		Version:  SdkVersion,
+		Version:  shimmerdata_go.Version,
 		Compress: c.conf.Compress,
 		Size:     int64(size),
 		Log:      encodedData,
