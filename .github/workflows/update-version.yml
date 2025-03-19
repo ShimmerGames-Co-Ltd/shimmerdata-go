@@ -36,8 +36,9 @@ jobs:
           git push origin :refs/tags/$TAG_NAME || true  # 删除远程旧标签
           git tag -a $TAG_NAME -m "Release $TAG_NAME"
           
-          # 推送新标签（使用完整引用路径）
-          git push origin refs/tags/$TAG_NAME --force
+          # 同步到 main 分支和标签（核心修改）
+          git push origin HEAD:refs/heads/main --force  # 强制推送到 main 分支
+          git push origin refs/tags/$TAG_NAME --force    # 推送到标签
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
