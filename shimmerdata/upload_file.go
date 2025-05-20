@@ -99,13 +99,31 @@ func (c *SDBatchConsumer) uploadFile(fileDir string) error {
 		if err != nil {
 			return fmt.Errorf("uploadFile POST error: %s", err.Error())
 		}
-		resp.Body.Close()
 
 		// 检查响应状态
 		if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusPartialContent {
-			return fmt.Errorf("uploadFile failed status: %d", resp.StatusCode)
+			body, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+
+			var result struct {
+				Code int
+				Msg  string
+			}
+			if len(body) > 0 {
+				err = json.Unmarshal(body, &result)
+				if err != nil {
+					return err
+				}
+			}
+			var errStr string
+			if result.Code != 0 {
+				errStr = fmt.Sprintf("httpStatus:%d, Code:%d Msg:%s", resp.StatusCode, result.Code, result.Msg)
+			}
+
+			return fmt.Errorf("uploadFile failed:%s", errStr)
 		}
 
+		resp.Body.Close()
 		// 更新已上传的字节数
 		uploadedBytes += currentChunkSize
 		sdLogInfo("%s have upload: %d/%d Bytes\n", fileDir, uploadedBytes, fileSize)
