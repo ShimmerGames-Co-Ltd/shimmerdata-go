@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -82,6 +83,10 @@ func isNotNumber(v interface{}) bool {
 	return false
 }
 
+func isBuildInAttribute(v string) bool {
+	return strings.HasPrefix(v, "#")
+}
+
 func formatProperties(d *Data, ta *SDAnalytics) error {
 
 	if d.EventName != "" {
@@ -104,7 +109,7 @@ func formatProperties(d *Data, ta *SDAnalytics) error {
 				}
 			}
 
-			if d.Type == UserAdd && isNotNumber(v) {
+			if d.Type == UserAdd && !isBuildInAttribute(k) && isNotNumber(v) {
 				msg := "invalid property value: only numbers is supported by UserAdd"
 				sdLogInfo(msg)
 				return errors.New(msg)
