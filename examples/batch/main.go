@@ -2,15 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/ShimmerGames-Co-Ltd/shimmerdata-go/shimmerdata"
 	"log/slog"
 	"time"
+
+	"github.com/ShimmerGames-Co-Ltd/shimmerdata-go/shimmerdata"
 )
 
 func main() {
 	client, err := newBatchClient(shimmerdata.SDBatchConfig{
 		TempDir:   fmt.Sprintf("../logs/back/app"),
 		ServerUrl: "http://localhost:20005",
+		//ServerUrl: "https://pt-logtransfer-us.shimmergames.net",
 		AppId:     fmt.Sprintf("app-id"),
 		AppToken:  fmt.Sprintf("app-token"),
 		BatchSize: 47,
@@ -27,7 +29,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 1000; i++ {
 		accountID := fmt.Sprintf("%d", i)
 		distinctID := fmt.Sprintf("7890123-%d", i)
 		err = client.UserSetOnce(accountID, distinctID,

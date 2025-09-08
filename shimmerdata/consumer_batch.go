@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	shimmerdata_go "github.com/ShimmerGames-Co-Ltd/shimmerdata-go"
 	"io"
 	"log/slog"
 	"net/http"
@@ -14,6 +13,8 @@ import (
 	"path/filepath"
 	"sync/atomic"
 	"time"
+
+	shimmerdata_go "github.com/ShimmerGames-Co-Ltd/shimmerdata-go"
 )
 
 // SDBatchConsumer 通过HTTP协议上报日志
@@ -25,7 +26,9 @@ type SDBatchConsumer struct {
 	ticker          *time.Ticker  //定时器
 	buffer          *SafeList     //日志缓存
 	listener        chan *Data    //日志通道
-	watcher         chan bool     //发送信号监听
+	watchFlushForce atomic.Int64  //强制发送信号监听
+	watchFlush      atomic.Int64  //非强制发送信号监听
+	watchStop       chan struct{} //发送进程退出
 	stopped         chan struct{} //关闭信号
 	dirWatchStop    chan struct{} //文件监听关闭信号
 	dirWatchStopped chan struct{} //文件监听关闭信号
@@ -89,7 +92,9 @@ func NewBatchConsumer(config SDBatchConfig) (SDConsumer, error) {
 		ticker:          time.NewTicker(time.Duration(interval) * time.Second),
 		buffer:          NewSafeList(),
 		listener:        make(chan *Data, batchSize*2),
-		watcher:         make(chan bool, 1),
+		watchFlushForce: atomic.Int64{},
+		watchFlush:      atomic.Int64{},
+		watchStop:       make(chan struct{}),
 		stopped:         make(chan struct{}),
 		dirWatchStop:    make(chan struct{}),
 		dirWatchStopped: make(chan struct{}),
@@ -119,19 +124,35 @@ func NewBatchConsumer(config SDBatchConfig) (SDConsumer, error) {
 		}()
 		for {
 			select {
+			case <-c.watchStop: //退出前强制将所有日志发送到服务器
+				sdLogInfo("batch consumer watcher stopping......")
+				//强制将所有数据发送到服务器
+				_ = c.innerFlush(true)
+				c.watchFlushForce.Store(0)
+				c.watchFlush.Store(0)
+				sdLogInfo("batch consumer stopped send log count:%d", c.countSend)
+				return
 			case <-c.ticker.C: //定时传输日志
 				sdLogInfo("ticker flush at:%s", time.Now().Format(time.RFC3339))
+				//清空计数值
+				c.watchFlushForce.Store(0)
+				c.watchFlush.Store(0)
+				//发送数据
 				_ = c.innerFlush(true)
-			case force, ok := <-c.watcher: //合批发送
-				if !ok {
-					sdLogInfo("batch consumer watcher stopping......")
-					//强制将所有数据发送到服务器
-					_ = c.innerFlush(true)
-					sdLogInfo("batch consumer stopped send log count:%d", c.countSend)
-					return
-				} else {
+			default: //合批发送
+				force := c.watchFlushForce.Swap(0)
+				notForce := c.watchFlush.Swap(0)
+				if force > 0 {
+					sdLogInfo("force flush count:%d at:%s", force, time.Now().Format(time.RFC3339))
 					//合批发送
-					_ = c.innerFlush(force)
+					_ = c.innerFlush(true)
+				} else if notForce > 0 {
+					sdLogInfo("not force flush count:%d at:%s", notForce, time.Now().Format(time.RFC3339))
+					//合批发送
+					_ = c.innerFlush(false)
+				} else {
+					//减少空转
+					time.Sleep(10 * time.Millisecond)
 				}
 			}
 		}
@@ -154,14 +175,14 @@ func (c *SDBatchConsumer) listen() {
 					c.ticker.Stop()
 					close(c.dirWatchStop)
 					<-c.dirWatchStopped
-					close(c.watcher)
+					close(c.watchStop)
 					return
 				}
 				atomic.AddInt64(&c.count, 1)
 				c.buffer.PushBack(d)
 				//合批发送
 				if c.buffer.Len() >= c.conf.BatchSize {
-					c.watcher <- false //非强制分割，根据情况分割
+					c.watchFlush.Add(1) //非强制分割，根据情况分割
 				}
 			}
 		}
@@ -217,7 +238,7 @@ func (c *SDBatchConsumer) Add(d Data) error {
 }
 
 func (c *SDBatchConsumer) Flush() error {
-	c.watcher <- true
+	c.watchFlushForce.Add(1)
 	sdLogInfo("flush data")
 	return nil
 }
