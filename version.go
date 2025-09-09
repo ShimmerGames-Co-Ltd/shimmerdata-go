@@ -1,4 +1,4 @@
 package shimmerdata_go
 
 const LibName = "Golang"
-const Version = "v1.0.6"
+const Version = "v1.0.7"
